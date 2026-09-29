@@ -17,7 +17,7 @@ const Sidebar = () => {
         </div>
 
         <div>
-          <h1 className="font-semibold">CV Matcher</h1>
+          <h1 className="font-semibold">Nexora</h1>
           <p className="text-xs text-slate-500">AI Career Assistant</p>
         </div>
       </div>
