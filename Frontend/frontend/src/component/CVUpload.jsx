@@ -1,58 +1,211 @@
-import { FileUp, UploadCloud } from "lucide-react";
+import { useState } from "react";
+
+import {
+  FileUp,
+  LoaderCircle,
+  CheckCircle2,
+  Sparkles,
+} from "lucide-react";
+
+import { analyzeCV } from "../services/api";
+import { useCV } from "../context/CVcontext";
+
 
 const CVUpload = () => {
+  const { cvResult, saveCVResult } = useCV();
+
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+
+  const handleFileChange = (event) => {
+    const file = event.target.files?.[0];
+
+    setError("");
+
+    if (!file) {
+      setSelectedFile(null);
+      return;
+    }
+
+    const isPdf =
+      file.type === "application/pdf" ||
+      file.name.toLowerCase().endsWith(".pdf");
+
+    if (!isPdf) {
+      setSelectedFile(null);
+      setError("Please select a valid PDF CV.");
+      return;
+    }
+
+    setSelectedFile(file);
+  };
+
+
+  const handleAnalyze = async () => {
+    if (!selectedFile) {
+      setError("Please select your CV first.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError("");
+
+      const result = await analyzeCV(selectedFile);
+
+      saveCVResult(result);
+
+      setSelectedFile(null);
+
+    } catch (error) {
+      console.error("CV analysis error:", error);
+
+      const message =
+        error.response?.data?.detail ||
+        error.message ||
+        "CV analysis failed.";
+
+      setError(message);
+
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   return (
-    <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-6">
+    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+
+      {/* Header */}
       <div className="mb-5">
-        <p className="text-sm font-medium text-cyan-400">
-          Step 01
-        </p>
+        <div className="flex items-center gap-2">
+          <Sparkles
+            size={18}
+            className="text-cyan-400"
+          />
 
-        <h3 className="mt-1 text-xl font-semibold text-white">
-          Upload your CV
-        </h3>
-
-        <p className="mt-1 text-sm text-slate-500">
-          Upload your latest resume and let AI analyze your profile.
-        </p>
-      </div>
-
-      <div className="flex min-h-56 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-slate-700 bg-slate-950/50 px-6 text-center transition hover:border-cyan-400/50 hover:bg-cyan-400/[0.03]">
-        
-        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-400/10 text-cyan-400">
-          <UploadCloud size={28} />
+          <h2 className="text-lg font-semibold text-white">
+            Upload Your CV
+          </h2>
         </div>
 
-        <h4 className="font-medium text-white">
-          Drop your CV here
-        </h4>
-
-        <p className="mt-2 text-sm text-slate-500">
-          or click to browse from your computer
-        </p>
-
-        <div className="mt-5">
-  <label
-    htmlFor="cv-upload"
-    className="flex w-[200px] cursor-pointer items-center justify-center gap-2 rounded-xl bg-cyan-400 px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300"
-  >
-    <FileUp size={17} />
-    Choose PDF
-  </label>
-
-  <input
-    id="cv-upload"
-    type="file"
-    accept=".pdf"
-    className="hidden"
-  />
-</div>
-
-        <p className="mt-3 text-xs text-slate-600">
-          PDF files only • Maximum 5MB
+        <p className="mt-1 text-sm text-slate-500">
+          Upload your CV to generate an AI-powered profile analysis.
         </p>
       </div>
-    </section>
+
+
+      {/* Upload Area */}
+      <div className="rounded-2xl border border-dashed border-white/10 bg-slate-900/50 p-8 text-center">
+
+        {selectedFile ? (
+          <>
+            <CheckCircle2
+              size={36}
+              className="mx-auto text-cyan-400"
+            />
+
+            <p className="mt-3 text-sm font-medium text-white">
+              {selectedFile.name}
+            </p>
+
+            <p className="mt-1 text-xs text-slate-500">
+              {(selectedFile.size / 1024).toFixed(1)} KB
+            </p>
+          </>
+        ) : (
+          <>
+            <FileUp
+              size={36}
+              className="mx-auto text-slate-500"
+            />
+
+            <p className="mt-3 text-sm text-slate-300">
+              Select your CV
+            </p>
+
+            <p className="mt-1 text-xs text-slate-600">
+              PDF format
+            </p>
+          </>
+        )}
+
+
+        {/* File Picker */}
+        <div className="mt-6">
+
+          <label
+            htmlFor="cv-upload"
+            className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-cyan-400 px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300"
+          >
+            <FileUp size={17} />
+
+            {selectedFile
+              ? "Change CV"
+              : "Choose CV"}
+          </label>
+
+          <input
+            id="cv-upload"
+            type="file"
+            accept=".pdf,application/pdf"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+
+        </div>
+
+
+        {/* Analyze */}
+        {selectedFile && (
+          <button
+            type="button"
+            onClick={handleAnalyze}
+            disabled={loading}
+            className="mt-4 inline-flex items-center gap-2 rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-5 py-2.5 text-sm font-semibold text-cyan-300 transition hover:bg-cyan-400/20 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {loading ? (
+              <>
+                <LoaderCircle
+                  size={17}
+                  className="animate-spin"
+                />
+
+                Analyzing CV...
+              </>
+            ) : (
+              <>
+                <Sparkles size={17} />
+
+                Analyze CV
+              </>
+            )}
+          </button>
+        )}
+
+
+        {/* Error */}
+        {error && (
+          <p className="mt-4 text-sm text-red-400">
+            {error}
+          </p>
+        )}
+
+      </div>
+
+
+      {/* Existing Result Status */}
+      {cvResult && !selectedFile && (
+        <div className="mt-4 flex items-center gap-2 text-xs text-emerald-400">
+          <CheckCircle2 size={15} />
+
+          Latest CV analysis is available.
+        </div>
+      )}
+
+    </div>
   );
 };
 
