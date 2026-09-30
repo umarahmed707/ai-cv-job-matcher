@@ -26,30 +26,30 @@ const MyCV = () => {
   const analysis = cvResult?.analysis;
   const jobs = cvResult?.job_matches || [];
 
-const handleFileChange = (event) => {
-  const file = event.target.files?.[0];
+  const handleFileChange = (event) => {
+    const file = event.target.files?.[0];
 
-  setError("");
+    setError("");
 
-  if (!file) {
-    setSelectedFile(null);
-    return;
-  }
+    if (!file) {
+      setSelectedFile(null);
+      return;
+    }
 
-  const fileName = file.name.toLowerCase();
+    const fileName = file.name.toLowerCase();
 
-  const isPdf = fileName.endsWith(".pdf");
-  const isDocx = fileName.endsWith(".docx");
+    const isPdf = fileName.endsWith(".pdf");
+    const isDocx = fileName.endsWith(".docx");
 
-  if (!isPdf && !isDocx) {
-    setSelectedFile(null);
-    setError("Only PDF and Word (.docx) files are allowed.");
-    event.target.value = "";
-    return;
-  }
+    if (!isPdf && !isDocx) {
+      setSelectedFile(null);
+      setError("Only PDF and Word (.docx) files are allowed.");
+      event.target.value = "";
+      return;
+    }
 
-  setSelectedFile(file);
-};
+    setSelectedFile(file);
+  };
 
   const handleAnalyze = async () => {
     if (!selectedFile) {
@@ -70,8 +70,8 @@ const handleFileChange = (event) => {
 
       setError(
         error.response?.data?.detail ||
-          error.message ||
-          "CV analysis failed."
+        error.message ||
+        "CV analysis failed."
       );
     } finally {
       setLoading(false);
@@ -122,8 +122,8 @@ const handleFileChange = (event) => {
                 {selectedFile
                   ? `${(selectedFile.size / 1024).toFixed(1)} KB`
                   : cvResult
-                  ? "CV analyzed successfully"
-                  : "Upload your CV to start AI analysis"}
+                    ? "CV analyzed successfully"
+                    : "Upload your CV to start AI analysis"}
               </p>
             </div>
 
@@ -139,13 +139,13 @@ const handleFileChange = (event) => {
               Choose CV
             </label>
 
-          <input
-  id="cv-upload"
-  type="file"
-  accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-  className="hidden"
-  onChange={handleFileChange}
-/>
+            <input
+              id="cv-upload"
+              type="file"
+              accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              className="hidden"
+              onChange={handleFileChange}
+            />
             {selectedFile && (
               <button
                 type="button"
