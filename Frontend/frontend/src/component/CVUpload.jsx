@@ -20,28 +20,29 @@ const CVUpload = () => {
 
 
   const handleFileChange = (event) => {
-    const file = event.target.files?.[0];
+  const file = event.target.files?.[0];
 
-    setError("");
+  setError("");
 
-    if (!file) {
-      setSelectedFile(null);
-      return;
-    }
+  if (!file) {
+    setSelectedFile(null);
+    return;
+  }
 
-    const isPdf =
-      file.type === "application/pdf" ||
-      file.name.toLowerCase().endsWith(".pdf");
+  const fileName = file.name.toLowerCase();
 
-    if (!isPdf) {
-      setSelectedFile(null);
-      setError("Please select a valid PDF CV.");
-      return;
-    }
+  const isPdf = fileName.endsWith(".pdf");
+  const isDocx = fileName.endsWith(".docx");
 
-    setSelectedFile(file);
-  };
+  if (!isPdf && !isDocx) {
+    setSelectedFile(null);
+    setError("Only PDF and Word (.docx) files are allowed.");
+    event.target.value = "";
+    return;
+  }
 
+  setSelectedFile(file);
+};
 
   const handleAnalyze = async () => {
     if (!selectedFile) {
@@ -127,7 +128,7 @@ const CVUpload = () => {
             </p>
 
             <p className="mt-1 text-xs text-slate-600">
-              PDF format
+              PDF & Word format
             </p>
           </>
         )}
@@ -146,14 +147,13 @@ const CVUpload = () => {
               ? "Change CV"
               : "Choose CV"}
           </label>
-
-          <input
-            id="cv-upload"
-            type="file"
-            accept=".pdf,application/pdf"
-            className="hidden"
-            onChange={handleFileChange}
-          />
+<input
+  id="cv-upload"
+  type="file"
+  accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  className="hidden"
+  onChange={handleFileChange}
+/>
 
         </div>
 

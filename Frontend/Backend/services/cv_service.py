@@ -3,6 +3,7 @@ import json
 from io import BytesIO
 
 from pypdf import PdfReader
+from docx import Document
 from groq import Groq
 
 
@@ -11,6 +12,7 @@ from groq import Groq
 # -------------------------
 
 def extract_pdf_text(file_bytes: bytes) -> str:
+
     reader = PdfReader(BytesIO(file_bytes))
 
     text = ""
@@ -25,7 +27,37 @@ def extract_pdf_text(file_bytes: bytes) -> str:
 
 
 # -------------------------
-# GROQ AI CLIENT
+# DOCX TEXT EXTRACTION
+# -------------------------
+
+def extract_docx_text(file_bytes: bytes) -> str:
+
+    document = Document(BytesIO(file_bytes))
+
+    text = []
+
+    # Paragraphs
+    for paragraph in document.paragraphs:
+        if paragraph.text.strip():
+            text.append(paragraph.text.strip())
+
+    # Tables
+    for table in document.tables:
+        for row in table.rows:
+            row_text = []
+
+            for cell in row.cells:
+                if cell.text.strip():
+                    row_text.append(cell.text.strip())
+
+            if row_text:
+                text.append(" | ".join(row_text))
+
+    return "\n".join(text).strip()
+
+
+# -------------------------
+# GROQ CLIENT
 # -------------------------
 
 client = Groq(
@@ -38,6 +70,7 @@ client = Groq(
 # -------------------------
 
 def clean_json_response(content: str) -> dict:
+
     content = content.strip()
 
     if content.startswith("```json"):
@@ -95,15 +128,17 @@ Use exactly this structure:
 }}
 
 Rules:
-- Extract only information actually present in the CV.
-- Do not invent skills, experience, education, companies, or dates.
+- Extract facts only when explicitly present in the CV.
+- Never invent a company name, job title, date, degree, skill, or responsibility.
+- Do not create employment experience from the candidate's name, email, filename, project, or education.
+- If a field is uncertain, return an empty string instead of guessing.
+- Keep each education qualification separate.
 - Maximum 15 skills.
 - Maximum 5 recommended roles.
 - Maximum 8 strengths.
 - Maximum 6 skill gaps.
 - Maximum 4 responsibilities per experience entry.
-- Keep all values concise.
-- Recommend roles based on actual skills, experience, and education.
+- Keep values concise.
 - Return valid JSON only.
 
 CV TEXT:
@@ -113,16 +148,19 @@ CV TEXT:
 
     response = client.chat.completions.create(
         model="openai/gpt-oss-20b",
+
         messages=[
             {
                 "role": "user",
                 "content": prompt
             }
         ],
+
         temperature=0.2,
         max_completion_tokens=2500,
         reasoning_effort="low",
         include_reasoning=False,
+
         response_format={
             "type": "json_object"
         }
