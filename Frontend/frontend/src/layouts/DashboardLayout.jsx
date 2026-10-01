@@ -4,14 +4,17 @@ import Navbar from "../component/Navbar";
 
 const DashboardLayout = () => {
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen w-full overflow-x-hidden bg-slate-950 text-white">
       <Sidebar />
 
-      <div className="ml-64">
+      {/* Main wrapper */}
+      <div className="w-full md:ml-64 md:w-[calc(100%-16rem)]">
         <Navbar />
 
-        <main className="p-8">
-          <Outlet />
+        <main className="w-full px-4 pb-8 pt-20 sm:px-6 md:px-6 md:pt-6 lg:px-8">
+          <div className="mx-auto w-full max-w-7xl">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
